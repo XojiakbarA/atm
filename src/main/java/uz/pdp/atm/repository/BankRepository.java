@@ -6,4 +6,6 @@ import uz.pdp.atm.entity.Bank;
 
 @Repository
 public interface BankRepository extends JpaRepository<Bank, Long> {
+    boolean existsByName(String name);
+    boolean existsByNameAndIdNot(String name, Long id);
 }

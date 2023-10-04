@@ -36,6 +36,9 @@ public class ATM {
     @Column(nullable = false)
     private Double commissionForOtherCardReceiver;
 
+    @ManyToOne
+    private Bank bank;
+
     @OneToOne(cascade = CascadeType.ALL)
     private Address address;
 
