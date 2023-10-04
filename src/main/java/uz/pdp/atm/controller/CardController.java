@@ -5,58 +5,58 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import uz.pdp.atm.dto.request.BankRequest;
+import uz.pdp.atm.dto.request.CardRequest;
 import uz.pdp.atm.dto.response.Response;
-import uz.pdp.atm.dto.view.BankView;
 import uz.pdp.atm.dto.view.CardView;
-import uz.pdp.atm.service.BankService;
+import uz.pdp.atm.marker.OnCreate;
 import uz.pdp.atm.service.CardService;
 
+@Validated
 @RestController
-@RequestMapping("/banks")
-public class BankController {
-    @Autowired
-    private BankService bankService;
+@RequestMapping("/cards")
+public class CardController {
     @Autowired
     private CardService cardService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Response getAll(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size) {
-        Page<BankView> banks = bankService.getAll(PageRequest.of(page, size));
+        Page<CardView> cards = cardService.getAll(PageRequest.of(page, size));
 
-        return new Response(HttpStatus.OK.name(), banks);
+        return new Response(HttpStatus.OK.name(), cards);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Response getById(@PathVariable Long id) {
-        BankView bank = bankService.getById(id);
+        CardView bank = cardService.getById(id);
 
         return new Response(HttpStatus.OK.name(), bank);
     }
 
-    @GetMapping("/{id}/cards")
-    @ResponseStatus(HttpStatus.OK)
-    public Response getAllCardsByBankId(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size, @PathVariable Long id) {
-        Page<CardView> cards = cardService.getAllByBankId(PageRequest.of(page, size), id);
-
-        return new Response(HttpStatus.OK.name(), cards);
-    }
-
+    @Validated(OnCreate.class)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Response create(@Valid @RequestBody BankRequest request) {
-        BankView bank = bankService.create(request);
+    public Response create(@Valid @RequestBody CardRequest request) {
+        CardView bank = cardService.create(request);
 
         return new Response(HttpStatus.CREATED.name(), bank);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Response updateById(@Valid @RequestBody BankRequest request, @PathVariable Long id) {
-        BankView bank = bankService.update(request, id);
+    public Response updateById(@Valid @RequestBody CardRequest request, @PathVariable Long id) {
+        CardView bank = cardService.update(request, id);
+
+        return new Response(HttpStatus.OK.name(), bank);
+    }
+
+    @PutMapping("/{cardId}/bank/{bankId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Response setBank(@PathVariable Long cardId, @PathVariable Long bankId) {
+        CardView bank = cardService.setBank(cardId, bankId);
 
         return new Response(HttpStatus.OK.name(), bank);
     }
@@ -64,7 +64,7 @@ public class BankController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Response deleteById(@PathVariable Long id) {
-        bankService.deleteById(id);
+        cardService.deleteById(id);
 
         return new Response(HttpStatus.ACCEPTED.name());
     }

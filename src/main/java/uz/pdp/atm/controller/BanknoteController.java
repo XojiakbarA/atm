@@ -5,12 +5,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uz.pdp.atm.dto.request.BanknoteRequest;
 import uz.pdp.atm.dto.response.Response;
 import uz.pdp.atm.dto.view.BanknoteView;
+import uz.pdp.atm.marker.OnCreate;
 import uz.pdp.atm.service.BanknoteService;
 
+@Validated
 @RestController
 @RequestMapping("/banknotes")
 public class BanknoteController {
@@ -33,6 +36,7 @@ public class BanknoteController {
         return new Response(HttpStatus.OK.name(), banknote);
     }
 
+    @Validated(OnCreate.class)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Response create(@Valid @RequestBody BanknoteRequest request) {

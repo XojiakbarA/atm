@@ -4,13 +4,18 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import uz.pdp.atm.enums.CardType;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
 
 @Data
 @Entity(name = "cards")
-public class Card {
+public class Card implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,17 +36,14 @@ public class Card {
     private String lastName;
 
     @Column(nullable = false)
-    private LocalDateTime expirationDate;
+    private LocalDate expirationDate = LocalDate.now().plusYears(4);
 
-    @Column(nullable = false, length = 4)
-    private Integer password;
+    @Column(nullable = false)
+    private String password;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private CardType cardType;
-
-    @Column(nullable = false)
-    private Boolean active = false;
 
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
@@ -50,4 +52,34 @@ public class Card {
     @Column(nullable = false)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public String getUsername() {
+        return number;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return bank != null;
+    }
 }

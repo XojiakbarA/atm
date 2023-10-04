@@ -49,11 +49,13 @@ public class BanknoteServiceImpl implements BanknoteService {
 
     @Override
     public BanknoteView update(BanknoteRequest request, Long id) {
-        Currency currency = Currency.getInstance(request.getCurrency());
-        if (banknoteRepository.existsByCurrencyAndAmountAndIdNot(currency, request.getAmount(), id)) {
-            throw new ExistsByCurrencyAndAmountException(
-                    Banknote.class.getSimpleName(), request.getCurrency(), request.getAmount()
-            );
+        if (request.getCurrency() != null) {
+            Currency currency = Currency.getInstance(request.getCurrency());
+            if (banknoteRepository.existsByCurrencyAndAmountAndIdNot(currency, request.getAmount(), id)) {
+                throw new ExistsByCurrencyAndAmountException(
+                        Banknote.class.getSimpleName(), request.getCurrency(), request.getAmount()
+                );
+            }
         }
         Banknote banknote = findById(id);
 
