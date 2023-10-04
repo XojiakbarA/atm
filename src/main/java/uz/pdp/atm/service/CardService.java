@@ -21,7 +21,13 @@ public interface CardService {
 
     Card findById(Long id);
 
+    Card findByNumber(String number);
+
     Card save(Card card);
 
     void deleteById(Long id);
+
+    void increaseAttemptsByNumber(String number);
+
+    void resetAttemptsByNumber(String number);
 }

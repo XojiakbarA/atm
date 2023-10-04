@@ -10,6 +10,7 @@ import uz.pdp.atm.entity.Bank;
 import uz.pdp.atm.entity.Card;
 import uz.pdp.atm.exception.ExistsByNumberException;
 import uz.pdp.atm.exception.NotFoundByIdException;
+import uz.pdp.atm.exception.NotFoundByNumberException;
 import uz.pdp.atm.mapper.CardMapper;
 import uz.pdp.atm.repository.CardRepository;
 import uz.pdp.atm.service.BankService;
@@ -80,6 +81,13 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
+    public Card findByNumber(String number) {
+        return cardRepository.findByNumber(number).orElseThrow(
+                () -> new NotFoundByNumberException(Card.class.getSimpleName(), number)
+        );
+    }
+
+    @Override
     public Card save(Card card) {
         return cardRepository.save(card);
     }
@@ -90,5 +98,23 @@ public class CardServiceImpl implements CardService {
             throw new NotFoundByIdException(Card.class.getSimpleName(), id);
         }
         cardRepository.deleteById(id);
+    }
+
+    @Override
+    public void increaseAttemptsByNumber(String number) {
+        Card card = findByNumber(number);
+
+        card.setAttempts(card.getAttempts() + 1);
+
+        save(card);
+    }
+
+    @Override
+    public void resetAttemptsByNumber(String number) {
+        Card card = findByNumber(number);
+
+        card.setAttempts(0);
+
+        save(card);
     }
 }

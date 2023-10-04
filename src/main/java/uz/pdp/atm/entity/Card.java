@@ -45,6 +45,9 @@ public class Card implements UserDetails {
     @Enumerated(EnumType.STRING)
     private CardType cardType;
 
+    @Column(nullable = false)
+    private Integer attempts = 0;
+
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -70,7 +73,7 @@ public class Card implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return attempts < 3;
     }
 
     @Override

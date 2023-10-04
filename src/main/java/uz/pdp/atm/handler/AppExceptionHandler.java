@@ -4,9 +4,6 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.*;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -17,6 +14,7 @@ import uz.pdp.atm.exception.ExistsByCurrencyAndAmountException;
 import uz.pdp.atm.exception.ExistsByNameException;
 import uz.pdp.atm.exception.ExistsByNumberException;
 import uz.pdp.atm.exception.NotFoundByIdException;
+import uz.pdp.atm.exception.NotFoundByNumberException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,20 +22,8 @@ import java.util.Map;
 @RestControllerAdvice
 public class AppExceptionHandler {
 
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameter(MissingServletRequestParameterException e) {
-        ErrorResponse response = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUsernameNotFound(UsernameNotFoundException e) {
-        ErrorResponse response = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(NotFoundByIdException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFound(NotFoundByIdException e) {
+    @ExceptionHandler({NotFoundByIdException.class, NotFoundByNumberException.class})
+    public ResponseEntity<ErrorResponse> handleEntityNotFound(RuntimeException e) {
         ErrorResponse response = new ErrorResponse(e.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
@@ -48,46 +34,10 @@ public class AppExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+    @ExceptionHandler({HttpMessageNotReadableException.class, MissingServletRequestParameterException.class})
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameter(RuntimeException e) {
         ErrorResponse response = new ErrorResponse(e.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException e) {
-        ErrorResponse response = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException e) {
-        ErrorResponse response = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(AccountExpiredException.class)
-    public ResponseEntity<ErrorResponse> handleAccountExpired(AccountExpiredException e) {
-        ErrorResponse response = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(CredentialsExpiredException.class)
-    public ResponseEntity<ErrorResponse> handleCredentialsExpired(CredentialsExpiredException e) {
-        ErrorResponse response = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<ErrorResponse> handleDisabled(DisabledException e) {
-        ErrorResponse response = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(LockedException.class)
-    public ResponseEntity<ErrorResponse> handleLocked(DisabledException e) {
-        ErrorResponse response = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.LOCKED);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
