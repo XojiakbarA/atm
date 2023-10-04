@@ -4,15 +4,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import uz.pdp.atm.entity.ATM;
+import uz.pdp.atm.entity.ATMBanknote;
 import uz.pdp.atm.entity.Bank;
 import uz.pdp.atm.entity.Banknote;
 import uz.pdp.atm.entity.Card;
 import uz.pdp.atm.enums.CardType;
+import uz.pdp.atm.service.ATMService;
 import uz.pdp.atm.service.BankService;
 import uz.pdp.atm.service.BanknoteService;
 import uz.pdp.atm.service.CardService;
 
 import java.util.Currency;
+import java.util.Set;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -24,6 +29,8 @@ public class DataLoader implements CommandLineRunner {
     private BanknoteService banknoteService;
     @Autowired
     private CardService cardService;
+    @Autowired
+    private ATMService atmService;
 
     @Override
     public void run(String... args) {
@@ -44,6 +51,7 @@ public class DataLoader implements CommandLineRunner {
         createBanknote(Currency.getInstance("USD"), 100);
         createCard("1111222233334444", "1122", "123",
                 "User1", "User1", CardType.UZCARD, 1L);
+        createATM(3_000_000D, 10_000_000D, Set.of(CardType.HUMO, CardType.UZCARD), 1L);
     }
 
     public void createBank(String name) {
@@ -69,5 +77,41 @@ public class DataLoader implements CommandLineRunner {
         card.setCardType(cardType);
         card.setBank(bankService.findById(bankId));
         cardService.save(card);
+    }
+
+    public void createATM(Double maxWithdrawalAmount, Double warningAmount, Set<CardType> cardTypes, Long bankId) {
+        ATM atm = new ATM();
+        atm.setMaxWithdrawalAmount(maxWithdrawalAmount);
+        atm.setWarningAmount(warningAmount);
+        atm.setCardTypes(cardTypes);
+        atm.setCommissionForWithdrawOwnCard(0.5);
+        atm.setCommissionForTopUpOwnCard(0.25);
+        atm.setCommissionForWithdrawOtherCard(1.0);
+        atm.setCommissionForTopUpOtherCard(0.5);
+        atm.setBank(bankService.findById(bankId));
+
+        ATMBanknote atmBanknote1 = new ATMBanknote();
+        atmBanknote1.setBanknote(banknoteService.findByAmount(1_000));
+        atmBanknote1.setCount(100);
+        atmBanknote1.setAtm(atm);
+
+        ATMBanknote atmBanknote2 = new ATMBanknote();
+        atmBanknote2.setBanknote(banknoteService.findByAmount(5_000));
+        atmBanknote2.setCount(100);
+        atmBanknote2.setAtm(atm);
+
+        ATMBanknote atmBanknote3 = new ATMBanknote();
+        atmBanknote3.setBanknote(banknoteService.findByAmount(10_000));
+        atmBanknote3.setCount(50);
+        atmBanknote3.setAtm(atm);   
+
+        ATMBanknote atmBanknote4 = new ATMBanknote();
+        atmBanknote4.setBanknote(banknoteService.findByAmount(50_000));
+        atmBanknote4.setCount(50);
+        atmBanknote4.setAtm(atm);
+
+        atm.setAtmBanknotes(Set.of(atmBanknote1, atmBanknote2, atmBanknote3, atmBanknote4));
+
+        atmService.save(atm);
     }
 }

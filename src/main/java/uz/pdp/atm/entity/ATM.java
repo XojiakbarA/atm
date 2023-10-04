@@ -7,6 +7,10 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uz.pdp.atm.enums.CardType;
 
+import java.util.Currency;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -16,7 +20,9 @@ public class ATM {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Set<CardType> cardTypes;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Set<CardType> cardTypes = new HashSet<>();
 
     @Column(nullable = false)
     private Double maxWithdrawalAmount;
@@ -25,16 +31,16 @@ public class ATM {
     private Double warningAmount;
 
     @Column(nullable = false)
-    private Double commissionForOwnCardSender;
+    private Double commissionForWithdrawOwnCard;
 
     @Column(nullable = false)
-    private Double commissionForOwnCardReceiver;
+    private Double commissionForTopUpOwnCard;
 
     @Column(nullable = false)
-    private Double commissionForOtherCardSender;
+    private Double commissionForWithdrawOtherCard;
 
     @Column(nullable = false)
-    private Double commissionForOtherCardReceiver;
+    private Double commissionForTopUpOtherCard;
 
     @ManyToOne
     private Bank bank;
@@ -45,6 +51,24 @@ public class ATM {
     @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "atm", cascade = CascadeType.REMOVE)
-    private Set<ATMBanknote> atmBanknotes;
+    @OneToMany(mappedBy = "atm", cascade = CascadeType.ALL)
+    private Set<ATMBanknote> atmBanknotes = new HashSet<>();
+
+    public Map<Currency, Long> getTotalMoney() {
+        Map<Currency, Long> map = new HashMap<>();
+        
+        for (ATMBanknote atmBanknote : atmBanknotes) {
+            Long sum = atmBanknotes.stream()
+                            .filter(b -> b.getBanknote().getCurrency().equals(atmBanknote.getBanknote().getCurrency()))
+                            .map(b -> (long) b.getCount() * b.getBanknote().getAmount())
+                            .reduce(0L, Long::sum);
+            map.put(atmBanknote.getBanknote().getCurrency(), sum);
+        }
+
+        return map;
+    }
+
+    public boolean isEnabled() {
+        return bank != null;
+    }
 }

@@ -17,6 +17,8 @@ public interface BanknoteService {
 
     Banknote findById(Long id);
 
+    Banknote findByAmount(Integer amount);
+
     Banknote save(Banknote banknote);
 
     void deleteById(Long id);

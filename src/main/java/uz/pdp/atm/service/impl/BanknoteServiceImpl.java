@@ -8,6 +8,7 @@ import uz.pdp.atm.dto.request.BanknoteRequest;
 import uz.pdp.atm.dto.view.BanknoteView;
 import uz.pdp.atm.entity.Banknote;
 import uz.pdp.atm.exception.ExistsByCurrencyAndAmountException;
+import uz.pdp.atm.exception.NotFoundByAmountException;
 import uz.pdp.atm.exception.NotFoundByIdException;
 import uz.pdp.atm.mapper.BanknoteMapper;
 import uz.pdp.atm.repository.BanknoteRepository;
@@ -68,6 +69,13 @@ public class BanknoteServiceImpl implements BanknoteService {
     public Banknote findById(Long id) {
         return banknoteRepository.findById(id).orElseThrow(
                 () -> new NotFoundByIdException(Banknote.class.getSimpleName(), id)
+        );
+    }
+
+    @Override
+    public Banknote findByAmount(Integer amount) {
+        return banknoteRepository.findByAmount(amount).orElseThrow(
+                () -> new NotFoundByAmountException(Banknote.class.getSimpleName(), amount)
         );
     }
 
