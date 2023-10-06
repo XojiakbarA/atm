@@ -14,10 +14,7 @@ import uz.pdp.atm.dto.view.ATMView;
 import uz.pdp.atm.entity.*;
 import uz.pdp.atm.enums.CardType;
 import uz.pdp.atm.enums.OperationType;
-import uz.pdp.atm.exception.ATMIsNotEnabledException;
-import uz.pdp.atm.exception.BalanceIsInsufficientException;
-import uz.pdp.atm.exception.NotFoundByIdException;
-import uz.pdp.atm.exception.CardIsNotSupportedException;
+import uz.pdp.atm.exception.*;
 import uz.pdp.atm.mapper.ATMMapper;
 import uz.pdp.atm.repository.ATMRepository;
 import uz.pdp.atm.service.*;
@@ -167,17 +164,30 @@ public class ATMServiceImpl implements ATMService {
         if (!atm.getCardTypes().contains(card.getCardType())) {
             throw new CardIsNotSupportedException(atm.getCardTypes(), card.getCardType());
         }
-        if (card.getBalance() < request.getAmount()) {
+        if (request.getAmount() > atm.getMaxWithdrawalAmount()) {
+            throw new ExceedMaxWithdrawalAmountException(atm.getMaxWithdrawalAmount());
+        }
+
+        Double commission = getWithdrawCommission(request.getAmount(), atm, card.getBank().getId());
+
+        if (card.getBalance() < (request.getAmount() + commission)) {
             throw new BalanceIsInsufficientException(Card.class.getSimpleName(), card.getBalance());
         }
         Long remainder = withdrawFromATM(atm, card, request.getAmount());
         Long withdrawalAmount = request.getAmount() - remainder;
-        card.setBalance(card.getBalance() - withdrawalAmount);
+        card.setBalance(card.getBalance() - (withdrawalAmount + commission));
 
         cardService.save(card);
         save(atm);
 
         return withdrawalAmount;
+    }
+
+    private Double getWithdrawCommission(Long amount, ATM atm, Long cardBankId) {
+        if (atm.getBank().getId().equals(cardBankId)) {
+            return amount * (atm.getCommissionForWithdrawOwnCard() / 100);
+        }
+        return amount * (atm.getCommissionForWithdrawOtherCard() / 100);
     }
 
     @Override
@@ -205,13 +215,22 @@ public class ATMServiceImpl implements ATMService {
             }
         }
 
-        card.setBalance(card.getBalance() + sumOfSupportedBanknotes);
+        Double commission = getTopUpCommission(sumOfSupportedBanknotes, atm, card.getBank().getId());
+
+        card.setBalance(card.getBalance() + (sumOfSupportedBanknotes - commission));
 
         cardService.save(card);
         save(atm);
 
         operationService.create(OperationType.INPUT, atm, request.getBanknotes(), card.getNumber());
         return unsupportedBanknotes;
+    }
+
+    private Double getTopUpCommission(Integer amount, ATM atm, Long cardBankId) {
+        if (atm.getBank().getId().equals(cardBankId)) {
+            return amount * (atm.getCommissionForTopUpOwnCard() / 100);
+        }
+        return amount * (atm.getCommissionForTopUpOtherCard() / 100);
     }
 
     private Long withdrawFromATM(ATM atm, Card card, Long amount) {

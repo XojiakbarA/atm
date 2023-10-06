@@ -26,7 +26,8 @@ public class AppExceptionHandler {
 
     @ExceptionHandler({ExistsByCurrencyAndAmountException.class, ExistsByNameException.class,
             ExistsByNumberException.class, BalanceIsInsufficientException.class,
-            CardIsNotSupportedException.class, ATMIsNotEnabledException.class})
+            CardIsNotSupportedException.class, ATMIsNotEnabledException.class,
+            ExceedMaxWithdrawalAmountException.class})
     public ResponseEntity<ErrorResponse> handleEntityExists(RuntimeException e) {
         ErrorResponse response = new ErrorResponse(e.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
