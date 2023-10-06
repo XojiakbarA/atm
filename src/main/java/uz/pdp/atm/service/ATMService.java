@@ -5,8 +5,12 @@ import org.springframework.data.domain.Pageable;
 
 import uz.pdp.atm.dto.request.ATMRequest;
 import uz.pdp.atm.dto.request.ATMBanknoteRequest;
+import uz.pdp.atm.dto.request.TopUpRequest;
+import uz.pdp.atm.dto.request.WithdrawRequest;
 import uz.pdp.atm.dto.view.ATMView;
 import uz.pdp.atm.entity.ATM;
+
+import java.util.Set;
 
 public interface ATMService {
     Page<ATMView> getAll(Pageable pageable);
@@ -31,5 +35,7 @@ public interface ATMService {
 
     void deleteById(Long id);
 
-    Long withdraw(Long id, Long amount, String cardNumber);
+    Long withdraw(Long id, WithdrawRequest request, String cardNumber);
+
+    Set<ATMBanknoteRequest> topUp(Long id, TopUpRequest request, String cardNumber);
 }

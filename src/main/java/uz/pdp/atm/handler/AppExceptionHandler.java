@@ -24,7 +24,9 @@ public class AppExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({ExistsByCurrencyAndAmountException.class, ExistsByNameException.class, ExistsByNumberException.class, BalanceIsInsufficientException.class, CardIsNotSupportedException.class})
+    @ExceptionHandler({ExistsByCurrencyAndAmountException.class, ExistsByNameException.class,
+            ExistsByNumberException.class, BalanceIsInsufficientException.class,
+            CardIsNotSupportedException.class, ATMIsNotEnabledException.class})
     public ResponseEntity<ErrorResponse> handleEntityExists(RuntimeException e) {
         ErrorResponse response = new ErrorResponse(e.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

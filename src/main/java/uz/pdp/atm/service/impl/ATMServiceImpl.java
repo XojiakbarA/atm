@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.pdp.atm.dto.request.ATMBanknoteRequest;
 import uz.pdp.atm.dto.request.ATMRequest;
+import uz.pdp.atm.dto.request.TopUpRequest;
+import uz.pdp.atm.dto.request.WithdrawRequest;
 import uz.pdp.atm.dto.view.ATMView;
-import uz.pdp.atm.entity.ATM;
-import uz.pdp.atm.entity.ATMBanknote;
-import uz.pdp.atm.entity.Bank;
-import uz.pdp.atm.entity.Card;
+import uz.pdp.atm.entity.*;
 import uz.pdp.atm.enums.CardType;
+import uz.pdp.atm.exception.ATMIsNotEnabledException;
 import uz.pdp.atm.exception.BalanceIsInsufficientException;
 import uz.pdp.atm.exception.NotFoundByIdException;
 import uz.pdp.atm.exception.CardIsNotSupportedException;
@@ -24,6 +24,7 @@ import uz.pdp.atm.service.BankService;
 import uz.pdp.atm.service.BanknoteService;
 import uz.pdp.atm.service.CardService;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -102,6 +103,12 @@ public class ATMServiceImpl implements ATMService {
     public ATMView addATMBanknote(ATMBanknoteRequest request, Long id) {
         ATM atm = findById(id);
 
+        addATMBanknote(request, atm);
+
+        return atmMapper.mapToView(save(atm));
+    }
+
+    private void addATMBanknote(ATMBanknoteRequest request, ATM atm) {
         if (atm.getAtmBanknotes().stream().anyMatch(b -> b.getBanknote().getId().equals(request.getBanknoteId()))) {
             for (ATMBanknote atmBanknote : atm.getAtmBanknotes()) {
 
@@ -122,8 +129,6 @@ public class ATMServiceImpl implements ATMService {
 
             atm.getAtmBanknotes().add(atmBanknote);
         }
-
-        return atmMapper.mapToView(save(atm));
     }
 
     @Override
@@ -148,23 +153,60 @@ public class ATMServiceImpl implements ATMService {
 
     @Transactional
     @Override
-    public Long withdraw(Long id, Long amount, String cardNumber) {
+    public Long withdraw(Long id, WithdrawRequest request, String cardNumber) {
         ATM atm = findById(id);
         Card card = cardService.findByNumber(cardNumber);
 
+        if (!atm.isEnabled()) {
+            throw new ATMIsNotEnabledException();
+        }
         if (!atm.getCardTypes().contains(card.getCardType())) {
             throw new CardIsNotSupportedException(atm.getCardTypes(), card.getCardType());
         }
-        if (card.getBalance() < amount) {
+        if (card.getBalance() < request.getAmount()) {
             throw new BalanceIsInsufficientException(Card.class.getSimpleName(), card.getBalance());
         }
-        Long remainder = withdrawFromATM(atm, card.getCardType(), amount);
-        Long withdrawalAmount = amount - remainder;
+        Long remainder = withdrawFromATM(atm, card.getCardType(), request.getAmount());
+        Long withdrawalAmount = request.getAmount() - remainder;
         card.setBalance(card.getBalance() - withdrawalAmount);
 
         cardService.save(card);
+        save(atm);
 
         return withdrawalAmount;
+    }
+
+    @Override
+    public Set<ATMBanknoteRequest> topUp(Long id, TopUpRequest request, String cardNumber) {
+        ATM atm = findById(id);
+        Card card = cardService.findByNumber(cardNumber);
+
+        if (!atm.isEnabled()) {
+            throw new ATMIsNotEnabledException();
+        }
+        if (!atm.getCardTypes().contains(card.getCardType())) {
+            throw new CardIsNotSupportedException(atm.getCardTypes(), card.getCardType());
+        }
+
+        int sumOfSupportedBanknotes = 0;
+        Set<ATMBanknoteRequest> unsupportedBanknotes = new HashSet<>();
+
+        for (ATMBanknoteRequest b : request.getBanknotes()) {
+            Banknote banknote = banknoteService.findById(b.getBanknoteId());
+            if (banknote.getCurrency().equals(card.getCardType().getCurrency())) {
+                sumOfSupportedBanknotes += banknote.getAmount() * b.getCount();
+                addATMBanknote(b, atm);
+            } else {
+                unsupportedBanknotes.add(b);
+            }
+        }
+
+        card.setBalance(card.getBalance() + sumOfSupportedBanknotes);
+
+        cardService.save(card);
+        save(atm);
+
+        return unsupportedBanknotes;
     }
 
     private Long withdrawFromATM(ATM atm, CardType cardType, Long amount) {
