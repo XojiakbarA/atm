@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import uz.pdp.atm.enums.CardType;
+import uz.pdp.atm.enums.RoleType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -59,9 +60,13 @@ public class Card implements UserDetails {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private RoleType roleType;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
+        return this.getRoleType().getAuthorities();
     }
 
     @Override

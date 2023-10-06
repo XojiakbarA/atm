@@ -11,6 +11,7 @@ import uz.pdp.atm.entity.Bank;
 import uz.pdp.atm.entity.Banknote;
 import uz.pdp.atm.entity.Card;
 import uz.pdp.atm.enums.CardType;
+import uz.pdp.atm.enums.RoleType;
 import uz.pdp.atm.service.ATMService;
 import uz.pdp.atm.service.BankService;
 import uz.pdp.atm.service.BanknoteService;
@@ -51,7 +52,11 @@ public class DataLoader implements CommandLineRunner {
         createBanknote(Currency.getInstance("USD"), 50);
         createBanknote(Currency.getInstance("USD"), 100);
         createCard(5_000_000D, "1111222233334444", "1122", "123",
-                "User1", "User1", CardType.UZCARD, 1L);
+                "User1", "User1", CardType.UZCARD, 1L, RoleType.USER);
+        createCard(5_000_000D, "2222333344441111", "1122", "123",
+                "User1", "User1", CardType.UZCARD, 1L, RoleType.DIRECTOR);
+        createCard(5_000_000D, "3333444411112222", "1122", "123",
+                "User1", "User1", CardType.UZCARD, 1L, RoleType.EMPLOYEE);
         createATM(3_000_000L, 10_000_000L, Set.of(CardType.HUMO, CardType.UZCARD), 1L);
     }
 
@@ -68,7 +73,7 @@ public class DataLoader implements CommandLineRunner {
         banknoteService.save(banknote);
     }
 
-    public void createCard(Double balance, String number, String password, String cvv, String firstName, String lastName, CardType cardType, Long bankId) {
+    public void createCard(Double balance, String number, String password, String cvv, String firstName, String lastName, CardType cardType, Long bankId, RoleType roleType) {
         Card card = new Card();
         card.setBalance(balance);
         card.setNumber(number);
@@ -78,6 +83,7 @@ public class DataLoader implements CommandLineRunner {
         card.setLastName(lastName);
         card.setCardType(cardType);
         card.setBank(bankService.findById(bankId));
+        card.setRoleType(roleType);
         cardService.save(card);
     }
 

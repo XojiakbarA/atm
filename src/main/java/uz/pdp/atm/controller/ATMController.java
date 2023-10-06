@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,6 +48,7 @@ public class ATMController {
     @Autowired
     private OperationService operationService;
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Response getAll(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size) {
@@ -55,6 +57,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), banks);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Response getById(@PathVariable Long id) {
@@ -63,6 +66,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), atm);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @GetMapping("/{id}/operations")
     @ResponseStatus(HttpStatus.OK)
     public Response getAllOperationsByATMId(@PathVariable Long id, @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size) {
@@ -71,6 +75,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), operations);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @GetMapping("/{id}/operations/daily-inputs")
     @ResponseStatus(HttpStatus.OK)
     public Response getDailyAllInputOperationsByATMId(@PathVariable Long id, @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size) {
@@ -79,6 +84,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), atm);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @GetMapping("/{id}/operations/daily-outputs")
     @ResponseStatus(HttpStatus.OK)
     public Response getDailyAllOutputOperationsByATMId(@PathVariable Long id, @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size) {
@@ -87,6 +93,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), atm);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @GetMapping("/{id}/atm-banknotes")
     @ResponseStatus(HttpStatus.OK)
     public Response getAllATMBanknotesByATMId(@PathVariable Long id) {
@@ -95,6 +102,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), atm);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @Validated(OnCreate.class)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -104,6 +112,7 @@ public class ATMController {
         return new Response(HttpStatus.CREATED.name(), atm);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Response updateById(@Valid @RequestBody ATMRequest request, @PathVariable Long id) {
@@ -112,6 +121,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), atm);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @PutMapping("/{atmId}/bank/{bankId}")
     @ResponseStatus(HttpStatus.OK)
     public Response setBank(@PathVariable Long atmId, @PathVariable Long bankId) {
@@ -120,6 +130,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), atm);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @PutMapping("/{id}/card-types/{cardType}")
     @ResponseStatus(HttpStatus.OK)
     public Response addCardType(@PathVariable Long id, @PathVariable @IsValidEnum(enumClazz = CardType.class, message = "cardType must be any of UZCARD, HUMO, VISA") String cardType) {
@@ -128,6 +139,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), atm);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @DeleteMapping("/{id}/card-types/{cardType}")
     @ResponseStatus(HttpStatus.OK)
     public Response removeCardType(@PathVariable Long id, @PathVariable @IsValidEnum(enumClazz = CardType.class, message = "cardType must be any of UZCARD, HUMO, VISA") String cardType) {
@@ -136,6 +148,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), atm);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).ADD_ATM_BANKNOTES)")
     @PutMapping("/{id}/atm-banknotes")
     @ResponseStatus(HttpStatus.OK)
     public Response addBanknote(@Valid @RequestBody TopUpRequest request, @PathVariable Long id, Authentication authentication) {
@@ -144,6 +157,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), atm);
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).WITHDRAW)")
     @PutMapping("/{id}/withdraw")
     @ResponseStatus(HttpStatus.OK)
     public Response withdraw(@Valid @RequestBody WithdrawRequest request, @PathVariable Long id, Authentication authentication) {
@@ -152,6 +166,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), Map.of("withdrawalAmount", withdrawalAmount));
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).TOP_UP)")
     @PutMapping("/{id}/top-up")
     @ResponseStatus(HttpStatus.OK)
     public Response topUp(@PathVariable Long id, @RequestBody TopUpRequest request, Authentication authentication) {
@@ -160,6 +175,7 @@ public class ATMController {
         return new Response(HttpStatus.OK.name(), Map.of("unsupportedBanknotes", unsupportedBanknotes));
     }
 
+    @PreAuthorize("hasAuthority(T(uz.pdp.atm.enums.AuthorityType).CRUD_ALL)")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Response deleteById(@PathVariable Long id) {
