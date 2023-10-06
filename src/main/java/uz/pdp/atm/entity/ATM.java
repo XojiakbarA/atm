@@ -50,6 +50,12 @@ public class ATM {
     @OneToMany(mappedBy = "atm", cascade = CascadeType.ALL)
     private Set<ATMBanknote> atmBanknotes = new TreeSet<>();
 
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "atm", cascade = CascadeType.REMOVE)
+    private Set<Operation> operations = new HashSet<>();
+
     public Map<Currency, Long> getTotalMoney() {
         Map<Currency, Long> map = new HashMap<>();
         

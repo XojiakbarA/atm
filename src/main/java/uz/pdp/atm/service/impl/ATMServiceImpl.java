@@ -13,16 +13,14 @@ import uz.pdp.atm.dto.request.WithdrawRequest;
 import uz.pdp.atm.dto.view.ATMView;
 import uz.pdp.atm.entity.*;
 import uz.pdp.atm.enums.CardType;
+import uz.pdp.atm.enums.OperationType;
 import uz.pdp.atm.exception.ATMIsNotEnabledException;
 import uz.pdp.atm.exception.BalanceIsInsufficientException;
 import uz.pdp.atm.exception.NotFoundByIdException;
 import uz.pdp.atm.exception.CardIsNotSupportedException;
 import uz.pdp.atm.mapper.ATMMapper;
 import uz.pdp.atm.repository.ATMRepository;
-import uz.pdp.atm.service.ATMService;
-import uz.pdp.atm.service.BankService;
-import uz.pdp.atm.service.BanknoteService;
-import uz.pdp.atm.service.CardService;
+import uz.pdp.atm.service.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -39,6 +37,8 @@ public class ATMServiceImpl implements ATMService {
     private BanknoteService banknoteService;
     @Autowired
     private CardService cardService;
+    @Autowired
+    private OperationService operationService;
     @Autowired
     private ATMMapper atmMapper;
 
@@ -100,10 +100,14 @@ public class ATMServiceImpl implements ATMService {
     }
 
     @Override
-    public ATMView addATMBanknote(ATMBanknoteRequest request, Long id) {
+    public ATMView addATMBanknotes(TopUpRequest request, Long id, String username) {
         ATM atm = findById(id);
 
-        addATMBanknote(request, atm);
+        for (ATMBanknoteRequest banknoteRequest : request.getBanknotes()) {
+            addATMBanknote(banknoteRequest, atm);
+        }
+
+        operationService.create(OperationType.INPUT, atm, request.getBanknotes(), username);
 
         return atmMapper.mapToView(save(atm));
     }
@@ -166,7 +170,7 @@ public class ATMServiceImpl implements ATMService {
         if (card.getBalance() < request.getAmount()) {
             throw new BalanceIsInsufficientException(Card.class.getSimpleName(), card.getBalance());
         }
-        Long remainder = withdrawFromATM(atm, card.getCardType(), request.getAmount());
+        Long remainder = withdrawFromATM(atm, card, request.getAmount());
         Long withdrawalAmount = request.getAmount() - remainder;
         card.setBalance(card.getBalance() - withdrawalAmount);
 
@@ -206,18 +210,21 @@ public class ATMServiceImpl implements ATMService {
         cardService.save(card);
         save(atm);
 
+        operationService.create(OperationType.INPUT, atm, request.getBanknotes(), card.getNumber());
         return unsupportedBanknotes;
     }
 
-    private Long withdrawFromATM(ATM atm, CardType cardType, Long amount) {
-        Long atmBalance = atm.getTotalMoney().get(cardType.getCurrency());
+    private Long withdrawFromATM(ATM atm, Card card, Long amount) {
+        Long atmBalance = atm.getTotalMoney().get(card.getCardType().getCurrency());
         if (atmBalance < amount) {
             throw new BalanceIsInsufficientException(ATM.class.getSimpleName(), atmBalance);
         }
 
         Set<ATMBanknote> atmBanknotes = atm.getAtmBanknotes().stream()
-                .filter(b -> b.getBanknote().getCurrency().equals(cardType.getCurrency()))
+                .filter(b -> b.getBanknote().getCurrency().equals(card.getCardType().getCurrency()))
                 .collect(Collectors.toCollection(TreeSet::new));
+
+        Set<ATMBanknoteRequest> banknotes = new HashSet<>();
 
         for (ATMBanknote atmBanknote : atmBanknotes) {
             int banknoteAmount = atmBanknote.getBanknote().getAmount();
@@ -229,13 +236,28 @@ public class ATMServiceImpl implements ATMService {
             if (withdrawalCount <= banknoteCount) {
                 atmBanknote.setCount((int) (banknoteCount - withdrawalCount));
                 amount = remainingAmount;
-                if (amount == 0) return 0L;
+
+                ATMBanknoteRequest atmBanknoteRequest = new ATMBanknoteRequest(
+                        atmBanknote.getBanknote().getId(),(int) withdrawalCount
+                );
+                banknotes.add(atmBanknoteRequest);
+
+                if (amount == 0) {
+                    operationService.create(OperationType.OUTPUT, atm, banknotes, card.getNumber());
+                    return 0L;
+                };
             } else {
                 atmBanknote.setCount(0);
                 amount = amount - (long) banknoteAmount * banknoteCount;
-            }
 
+                ATMBanknoteRequest atmBanknoteRequest = new ATMBanknoteRequest(
+                        atmBanknote.getBanknote().getId(), banknoteCount
+                );
+                banknotes.add(atmBanknoteRequest);
+            }
         }
+
+        operationService.create(OperationType.OUTPUT, atm, banknotes, card.getNumber());
         return amount;
     }
 }

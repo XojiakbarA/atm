@@ -27,7 +27,7 @@ public interface ATMService {
 
     ATMView removeCardType(Long id, String cardType);
 
-    ATMView addATMBanknote(ATMBanknoteRequest request, Long id);
+    ATMView addATMBanknotes(TopUpRequest request, Long id, String username);
 
     ATM findById(Long id);
 

@@ -18,17 +18,17 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import uz.pdp.atm.dto.request.ATMRequest;
-import uz.pdp.atm.dto.request.ATMBanknoteRequest;
-import uz.pdp.atm.dto.request.TopUpRequest;
-import uz.pdp.atm.dto.request.WithdrawRequest;
+import uz.pdp.atm.dto.request.*;
 import uz.pdp.atm.dto.response.Response;
 import uz.pdp.atm.dto.view.ATMBanknoteView;
 import uz.pdp.atm.dto.view.ATMView;
+import uz.pdp.atm.dto.view.OperationView;
 import uz.pdp.atm.enums.CardType;
+import uz.pdp.atm.enums.OperationType;
 import uz.pdp.atm.marker.OnCreate;
 import uz.pdp.atm.service.ATMBanknoteService;
 import uz.pdp.atm.service.ATMService;
+import uz.pdp.atm.service.OperationService;
 import uz.pdp.atm.validator.IsValidEnum;
 
 import java.util.List;
@@ -44,6 +44,8 @@ public class ATMController {
     private ATMService atmService;
     @Autowired
     private ATMBanknoteService atmBanknoteService;
+    @Autowired
+    private OperationService operationService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -57,6 +59,30 @@ public class ATMController {
     @ResponseStatus(HttpStatus.OK)
     public Response getById(@PathVariable Long id) {
         ATMView atm = atmService.getById(id);
+
+        return new Response(HttpStatus.OK.name(), atm);
+    }
+
+    @GetMapping("/{id}/operations")
+    @ResponseStatus(HttpStatus.OK)
+    public Response getAllOperationsByATMId(@PathVariable Long id, @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size) {
+        Page<OperationView> operations = operationService.getAllByATMId(id, PageRequest.of(page, size));
+
+        return new Response(HttpStatus.OK.name(), operations);
+    }
+
+    @GetMapping("/{id}/operations/daily-inputs")
+    @ResponseStatus(HttpStatus.OK)
+    public Response getDailyAllInputOperationsByATMId(@PathVariable Long id, @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size) {
+        Page<OperationView> atm = operationService.getDailyAllByATMIdAndType(id, OperationType.INPUT, PageRequest.of(page, size));
+
+        return new Response(HttpStatus.OK.name(), atm);
+    }
+
+    @GetMapping("/{id}/operations/daily-outputs")
+    @ResponseStatus(HttpStatus.OK)
+    public Response getDailyAllOutputOperationsByATMId(@PathVariable Long id, @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size) {
+        Page<OperationView> atm = operationService.getDailyAllByATMIdAndType(id, OperationType.OUTPUT, PageRequest.of(page, size));
 
         return new Response(HttpStatus.OK.name(), atm);
     }
@@ -112,8 +138,8 @@ public class ATMController {
 
     @PutMapping("/{id}/atm-banknotes")
     @ResponseStatus(HttpStatus.OK)
-    public Response addBanknote(@Valid @RequestBody ATMBanknoteRequest request, @PathVariable Long id) {
-        ATMView atm = atmService.addATMBanknote(request, id);
+    public Response addBanknote(@Valid @RequestBody TopUpRequest request, @PathVariable Long id, Authentication authentication) {
+        ATMView atm = atmService.addATMBanknotes(request, id, authentication.getName());
 
         return new Response(HttpStatus.OK.name(), atm);
     }
