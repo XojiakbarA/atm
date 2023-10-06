@@ -9,7 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -29,12 +28,7 @@ public class AppAuthenticationProvider implements AuthenticationProvider {
         String username = authentication.getName();
         String password = authentication.getCredentials().toString();
 
-        UserDetails userDetails;
-        try {
-            userDetails = userDetailsService.loadUserByUsername(username);
-        } catch (UsernameNotFoundException e) {
-            throw new BadCredentialsException("Bad Credentials");
-        }
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (!userDetails.isAccountNonLocked()) {
             throw new LockedException("Card is locked");
         }

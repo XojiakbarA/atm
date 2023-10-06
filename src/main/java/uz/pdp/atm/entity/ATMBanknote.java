@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Entity(name = "atms_banknotes")
-public class ATMBanknote {
+public class ATMBanknote implements Comparable<ATMBanknote> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,4 +18,9 @@ public class ATMBanknote {
 
     @Column(nullable = false)
     private Integer count;
+
+    @Override
+    public int compareTo(ATMBanknote o) {
+        return Integer.compare(o.getBanknote().getAmount(), this.getBanknote().getAmount());
+    }
 }

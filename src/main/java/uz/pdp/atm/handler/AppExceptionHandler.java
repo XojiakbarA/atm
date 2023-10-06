@@ -10,11 +10,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import uz.pdp.atm.dto.response.ErrorResponse;
-import uz.pdp.atm.exception.ExistsByCurrencyAndAmountException;
-import uz.pdp.atm.exception.ExistsByNameException;
-import uz.pdp.atm.exception.ExistsByNumberException;
-import uz.pdp.atm.exception.NotFoundByIdException;
-import uz.pdp.atm.exception.NotFoundByNumberException;
+import uz.pdp.atm.exception.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +24,7 @@ public class AppExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({ExistsByCurrencyAndAmountException.class, ExistsByNameException.class, ExistsByNumberException.class})
+    @ExceptionHandler({ExistsByCurrencyAndAmountException.class, ExistsByNameException.class, ExistsByNumberException.class, BalanceIsInsufficientException.class, CardIsNotSupportedException.class})
     public ResponseEntity<ErrorResponse> handleEntityExists(RuntimeException e) {
         ErrorResponse response = new ErrorResponse(e.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

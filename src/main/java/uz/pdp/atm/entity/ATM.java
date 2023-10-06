@@ -7,11 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uz.pdp.atm.enums.CardType;
 
-import java.util.Currency;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @Entity(name = "atms")
@@ -25,10 +21,10 @@ public class ATM {
     private Set<CardType> cardTypes = new HashSet<>();
 
     @Column(nullable = false)
-    private Double maxWithdrawalAmount;
+    private Long maxWithdrawalAmount;
 
     @Column(nullable = false)
-    private Double warningAmount;
+    private Long warningAmount;
 
     @Column(nullable = false)
     private Double commissionForWithdrawOwnCard;
@@ -52,7 +48,7 @@ public class ATM {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "atm", cascade = CascadeType.ALL)
-    private Set<ATMBanknote> atmBanknotes = new HashSet<>();
+    private Set<ATMBanknote> atmBanknotes = new TreeSet<>();
 
     public Map<Currency, Long> getTotalMoney() {
         Map<Currency, Long> map = new HashMap<>();

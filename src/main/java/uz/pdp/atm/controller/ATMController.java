@@ -1,9 +1,11 @@
 package uz.pdp.atm.controller;
 
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,11 +22,16 @@ import jakarta.validation.Valid;
 import uz.pdp.atm.dto.request.ATMRequest;
 import uz.pdp.atm.dto.request.ATMBanknoteRequest;
 import uz.pdp.atm.dto.response.Response;
+import uz.pdp.atm.dto.view.ATMBanknoteView;
 import uz.pdp.atm.dto.view.ATMView;
 import uz.pdp.atm.enums.CardType;
 import uz.pdp.atm.marker.OnCreate;
+import uz.pdp.atm.service.ATMBanknoteService;
 import uz.pdp.atm.service.ATMService;
 import uz.pdp.atm.validator.IsValidEnum;
+
+import java.util.List;
+import java.util.Map;
 
 
 @Validated
@@ -33,6 +40,8 @@ import uz.pdp.atm.validator.IsValidEnum;
 public class ATMController {
     @Autowired
     private ATMService atmService;
+    @Autowired
+    private ATMBanknoteService atmBanknoteService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -46,6 +55,14 @@ public class ATMController {
     @ResponseStatus(HttpStatus.OK)
     public Response getById(@PathVariable Long id) {
         ATMView atm = atmService.getById(id);
+
+        return new Response(HttpStatus.OK.name(), atm);
+    }
+
+    @GetMapping("/{id}/atm-banknotes")
+    @ResponseStatus(HttpStatus.OK)
+    public Response getAllATMBanknotesByATMId(@PathVariable Long id) {
+        List<ATMBanknoteView> atm = atmBanknoteService.getAllByATMId(id);
 
         return new Response(HttpStatus.OK.name(), atm);
     }
@@ -97,6 +114,17 @@ public class ATMController {
         ATMView atm = atmService.addATMBanknote(request, id);
 
         return new Response(HttpStatus.OK.name(), atm);
+    }
+
+    @PutMapping("/{id}/withdraw/{amount}")
+    @ResponseStatus(HttpStatus.OK)
+    public Response withdraw(@PathVariable Long id,
+                             @Positive(message = "amount must be a positive")
+                             @PathVariable
+                             Long amount, Authentication authentication) {
+        Long withdrawalAmount = atmService.withdraw(id, amount, authentication.getName());
+
+        return new Response(HttpStatus.OK.name(), Map.of("withdrawalAmount", withdrawalAmount));
     }
 
     @DeleteMapping("/{id}")

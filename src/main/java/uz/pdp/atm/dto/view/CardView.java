@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @Builder
 public class CardView {
     private Long id;
+    private Double balance;
     private String number;
     private BankView bank;
     private String cvv;

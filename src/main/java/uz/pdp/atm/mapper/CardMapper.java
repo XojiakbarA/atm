@@ -19,6 +19,7 @@ public class CardMapper {
 
         return CardView.builder()
                 .id(card.getId())
+                .balance(card.getBalance())
                 .bank(bankMapper.mapToView(card.getBank()))
                 .number(card.getNumber())
                 .cvv(card.getCvv())

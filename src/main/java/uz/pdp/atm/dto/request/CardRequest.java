@@ -12,6 +12,9 @@ import java.time.LocalDate;
 
 @Data
 public class CardRequest {
+    @Positive(message = "balance must be a positive")
+    private Double balance;
+
     @NotNull(message = "number must not be null", groups = OnCreate.class)
     @Min(value = 1000_0000_0000_0000L, message = "number must be 16 digits")
     @Max(value = 9999_9999_9999_9999L, message = "number must be 16 digits")

@@ -30,4 +30,6 @@ public interface ATMService {
     ATM save(ATM atm);
 
     void deleteById(Long id);
+
+    Long withdraw(Long id, Long amount, String cardNumber);
 }

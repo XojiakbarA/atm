@@ -13,15 +13,14 @@ import uz.pdp.atm.enums.CardType;
 public class ATMView {
     private Long id;
     private Set<CardType> cardTypes;
-    private Double maxWithdrawalAmount;
-    private Double warningAmount;
+    private Long maxWithdrawalAmount;
+    private Long warningAmount;
     private Double commissionForWithdrawOwnCard;
     private Double commissionForTopUpOwnCard;
     private Double commissionForWithdrawOtherCard;
     private Double commissionForTopUpOtherCard;
     private BankView bank;
     private AddressView address;
-    private Set<ATMBanknoteView> atmBanknotes;
     private Boolean enabled;
     private Map<Currency, Long> totalMoney;
 }

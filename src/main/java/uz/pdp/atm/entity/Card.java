@@ -20,6 +20,9 @@ public class Card implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private Double balance = 0D;
+
     @Column(nullable = false, unique = true, length = 16)
     private String number;
 

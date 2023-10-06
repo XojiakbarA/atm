@@ -22,11 +22,11 @@ public class ATMRequest {
 
     @NotNull(message = "maxWithdrawalAmount must not be null", groups = OnCreate.class)
     @Positive(message = "maxWithdrawalAmount must be a positive")
-    private Double maxWithdrawalAmount;
+    private Long maxWithdrawalAmount;
 
     @NotNull(message = "warningAmount must not be null", groups = OnCreate.class)
     @Positive(message = "warningAmount must be a positive")
-    private Double warningAmount;
+    private Long warningAmount;
 
     @NotNull(message = "commissionForWithdrawOwnCard must not be null", groups = OnCreate.class)
     @Positive(message = "commissionForWithdrawOwnCard must be a positive")

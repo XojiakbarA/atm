@@ -17,8 +17,6 @@ public class ATMMapper {
     private BankMapper bankMapper;
     @Autowired
     private AddressMapper addressMapper;
-    @Autowired
-    private ATMBanknoteMapper atmBanknoteMapper;
 
     public ATMView mapToView(ATM atm) {
         if (atm == null) return null;
@@ -34,7 +32,6 @@ public class ATMMapper {
                     .commissionForTopUpOtherCard(atm.getCommissionForTopUpOtherCard())
                     .bank(bankMapper.mapToView(atm.getBank()))
                     .address(addressMapper.mapToView(atm.getAddress()))
-                    .atmBanknotes(atm.getAtmBanknotes().stream().map(atmBanknoteMapper::mapToView).collect(Collectors.toSet()))
                     .enabled(atm.isEnabled())
                     .totalMoney(atm.getTotalMoney())
                     .build();

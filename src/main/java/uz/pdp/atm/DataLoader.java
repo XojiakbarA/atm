@@ -18,6 +18,7 @@ import uz.pdp.atm.service.CardService;
 
 import java.util.Currency;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -49,9 +50,9 @@ public class DataLoader implements CommandLineRunner {
         createBanknote(Currency.getInstance("USD"), 20);
         createBanknote(Currency.getInstance("USD"), 50);
         createBanknote(Currency.getInstance("USD"), 100);
-        createCard("1111222233334444", "1122", "123",
+        createCard(5_000_000D, "1111222233334444", "1122", "123",
                 "User1", "User1", CardType.UZCARD, 1L);
-        createATM(3_000_000D, 10_000_000D, Set.of(CardType.HUMO, CardType.UZCARD), 1L);
+        createATM(3_000_000L, 10_000_000L, Set.of(CardType.HUMO, CardType.UZCARD), 1L);
     }
 
     public void createBank(String name) {
@@ -67,8 +68,9 @@ public class DataLoader implements CommandLineRunner {
         banknoteService.save(banknote);
     }
 
-    public void createCard(String number, String password, String cvv, String firstName, String lastName, CardType cardType, Long bankId) {
+    public void createCard(Double balance, String number, String password, String cvv, String firstName, String lastName, CardType cardType, Long bankId) {
         Card card = new Card();
+        card.setBalance(balance);
         card.setNumber(number);
         card.setPassword(passwordEncoder.encode(password));
         card.setCvv(cvv);
@@ -79,7 +81,7 @@ public class DataLoader implements CommandLineRunner {
         cardService.save(card);
     }
 
-    public void createATM(Double maxWithdrawalAmount, Double warningAmount, Set<CardType> cardTypes, Long bankId) {
+    public void createATM(Long maxWithdrawalAmount, Long warningAmount, Set<CardType> cardTypes, Long bankId) {
         ATM atm = new ATM();
         atm.setMaxWithdrawalAmount(maxWithdrawalAmount);
         atm.setWarningAmount(warningAmount);
@@ -110,7 +112,17 @@ public class DataLoader implements CommandLineRunner {
         atmBanknote4.setCount(50);
         atmBanknote4.setAtm(atm);
 
-        atm.setAtmBanknotes(Set.of(atmBanknote1, atmBanknote2, atmBanknote3, atmBanknote4));
+        ATMBanknote atmBanknote5 = new ATMBanknote();
+        atmBanknote5.setBanknote(banknoteService.findByAmount(50));
+        atmBanknote5.setCount(50);
+        atmBanknote5.setAtm(atm);
+
+        ATMBanknote atmBanknote6 = new ATMBanknote();
+        atmBanknote6.setBanknote(banknoteService.findByAmount(100));
+        atmBanknote6.setCount(70);
+        atmBanknote6.setAtm(atm);
+
+        atm.setAtmBanknotes(new TreeSet<>(Set.of(atmBanknote1, atmBanknote2, atmBanknote3, atmBanknote4, atmBanknote5, atmBanknote6)));
 
         atmService.save(atm);
     }
